@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blacktop Customs - Invoice App</title>
+    <!-- Tailwind CSS for modern, clean UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for matching category & menu icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f3f4f6;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .custom-red-bg {
+            background-color: #b90000;
+        }
+        .custom-red-light {
+            background-color: #d14141;
+        }
+        .sidebar-bg {
+            background-color: #0b1426;
+        }
+        /* Custom scrollbar to match original application aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #990000;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ffffff;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR PANEL -->
+    <div class="w-64 sidebar-bg flex flex-col justify-between p-4 flex-shrink-0">
+        <div>
+           <!-- Centered Blacktop Customs Logo Local File -->
+<div class="flex flex-col items-center my-6">
+    <div class="w-40 h-40 flex items-center justify-center overflow-hidden">
+        <img src="logo.pn g" 
+             alt="Blacktop Customs Logo" 
+             class="w-full h-full object-contain filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.6)]">
+    </div>
+</div>
+            <!-- Navigation Links -->
+            <nav class="space-y-2">
+                <button onclick="switchTab('calculator')" id="nav-calculator" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-gray-900 font-semibold shadow-sm transition">
+                    <i class="fa-solid fa-calculator w-5"></i>
+                    <span>Calculator</span>
+                </button>
+                <button onclick="switchTab('services')" id="nav-services" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white font-semibold transition">
+                    <i class="fa-solid fa-gear w-5"></i>
+                    <span>Services</span>
+                </button>
+            </nav>
+        </div>
+        
+        <!-- Footer Branding -->
+        <div class="text-center text-xs text-gray-500 bg-gray-900/40 py-2 rounded-lg">
+            © 2024 AutoShop Pro
+        </div>
+    </div>
+
+    <!-- MAIN INTERFACE CONTAINER -->
+    <div class="flex-1 flex flex-col overflow-y-auto bg-gray-100">
+        
+        <!-- VIEW 1: INVOICE CALCULATOR -->
+        <div id="view-calculator" class="p-8 block">
+            <header class="mb-6">
+                <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-receipt text-2xl text-gray-700"></i> Invoice Calculator
+                </h1>
+                <p class="text-gray-500 mt-1">Build accurate quotes for your customers</p>
+            </header>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                
+                <!-- Left Hand Column: Service Selector -->
+                <div class="xl:col-span-7 custom-red-bg rounded-2xl p-6 shadow-xl text-white">
+                    <h2 class="text-xl font-bold mb-4 tracking-wide">Available Services</h2>
+                    
+                    <!-- Search Input Bar -->
+                    <div class="relative text-gray-600 mb-4">
+                        <input type="text" id="search-input" oninput="renderCatalog()" placeholder="Search services..." class="w-full bg-white h-11 px-5 pl-10 rounded-xl text-sm focus:outline-none shadow-inner">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400"></i>
+                    </div>
+
+                    <!-- Category Filters -->
+                    <div class="flex flex-wrap gap-2 mb-4" id="category-filters">
+                        <!-- Rendered via JS dynamically -->
+                    </div>
+
+                    <!-- Scrollable Items List Container -->
+                    <div class="max-h-[500px] overflow-y-auto pr-2 space-y-2" id="catalog-list">
+                        <!-- Loaded via Javascript dynamically -->
+                    </div>
+                </div>
+
+                <!-- Right Hand Column: Invoice Summary Summary View -->
+                <div class="xl:col-span-5 custom-red-bg rounded-2xl p-6 shadow-xl text-white flex flex-col justify-between min-h-[550px]">
+                    <div>
+                        <div class="flex justify-between items-center mb-4 pb-2 border-b border-white/20">
+                            <h2 class="text-xl font-bold tracking-wide flex items-center gap-2">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> Invoice Summary
+                            </h2>
+                            <span class="text-sm bg-black/20 px-3 py-1 rounded-full text-gray-200" id="current-date">May 28, 2026</span>
+                        </div>
+
+                        <!-- Live Added Items Stack -->
+                        <div class="space-y-2 max-h-[340px] overflow-y-auto pr-1" id="invoice-items">
+                            <!-- Populated dynamically via Selection -->
+                            <p class="text-center text-white/60 py-12 text-sm italic">No items added to summary. Click an item on the left to add.</p>
+                        </div>
+                    </div>
+
+                    <!-- Calculation Footer Box -->
+                    <div class="mt-6 pt-4 border-t border-white/20">
+                        <div class="flex justify-between text-sm text-white/80 mb-2">
+                            <span>Subtotal</span>
+                            <span id="subtotal-val">$0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm text-white/80 mb-4">
+                            <div class="flex items-center gap-1">
+                                <span>% Discount</span>
+                                <input type="number" id="discount-input" oninput="calculateTotals()" min="0" max="100" value="0" class="w-14 text-center bg-white/20 border border-white/30 rounded px-1 py-0.5 text-white focus:outline-none font-bold text-xs">
+                                <span>%</span>
+                            </div>
+                            <span id="discount-val">-$0.00</span>
+                        </div>
+                        <div class="flex justify-between items-end border-t border-white/30 pt-4 mb-4">
+                            <span class="text-lg font-bold">Total</span>
+                            <span class="text-3xl font-black tracking-tight" id="total-val">$0.00</span>
+                        </div>
+                        <button onclick="resetInvoice()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- VIEW 2: SERVICES MANAGEMENT CATALOG -->
+        <div id="view-services" class="p-8 hidden">
+            <header class="mb-6 flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Manage Services</h1>
+                    <p class="text-gray-500 mt-1">Manage and edit your active live service pricing tier</p>
+                </div>
+            </header>
+
+            <!-- Grid Configuration Form Elements -->
+            <div class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-200">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm font-semibold uppercase tracking-wider">
+                            <th class="py-4 px-6">Service</th>
+                            <th class="py-4 px-6">Category</th>
+                            <th class="py-4 px-6 text-right w-48">Price ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="management-table-body" class="divide-y divide-gray-100">
+                        <!-- Loaded through script execution updates -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- APPLICATION SYSTEM LOGIC ENGINE -->
+    <script>
+        // Core Reactive State Dataset
+        let items = [
+            { id: 1, name: "Air Filter", desc: "Air Filter", category: "parts", price: 100.00, icon: "fa-box" },
+            { id: 2, name: "Brake Pads", desc: "Brake pads", category: "parts", price: 3000.00, icon: "fa-box" },
+            { id: 3, name: "Ceramic Brakes", desc: "Upgraded Brake Pads", category: "parts", price: 3000.00, icon: "fa-box" },
+            { id: 4, name: "Clutch Service", desc: "Repair or replace clutch", category: "labor", price: 3000.00, icon: "fa-wrench" },
+            { id: 5, name: "Cosmetics", desc: "Cosmetic Part", category: "parts", price: 400.00, icon: "fa-box" },
+            { id: 6, name: "Drift Kit", desc: "Drift Kit", category: "parts", price: 400.00, icon: "fa-box" },
+            { id: 7, name: "Drive Change", desc: "Change Drivetrain", category: "labor", price: 3500.00, icon: "fa-wrench" },
+            { id: 8, name: "Engine Upgrade", desc: "Full Engine Upgrade and Change", category: "labor", price: 12000.00, icon: "fa-wrench" },
+            { id: 9, name: "Extras", desc: "Add Extra", category: "parts", price: 400.00, icon: "fa-box" },
+            { id: 10, name: "Full Service", desc: "Complete Repair and Service", category: "other", price: 9000.00, icon: "fa-ellipsis" },
+            { id: 11, name: "Lights", desc: "Add and Upgrade Lighting", category: "parts", price: 400.00, icon: "fa-box" },
+            { id: 12, name: "NOS Bottle", desc: "Renew your NOS Bottle", category: "parts", price: 500.00, icon: "fa-box" },
+            { id: 13, name: "NOS Combo", desc: "NOS Kit and Bottle Install", category: "parts", price: 750.00, icon: "fa-box" },
+            { id: 14, name: "NOS Kit", desc: "NOS KIT Install", category: "labor", price: 500.00, icon: "fa-wrench" },
+            { id: 15, name: "Oil Change", desc: "Oil Drain and Change", category: "fluids", price: 100.00, icon: "fa-droplet" },
+            { id: 16, name: "Performance", desc: "Engine Upgrades", category: "parts", price: 500.00, icon: "fa-box" }, // Newly Added Part Requested
+            { id: 17, name: "Repair Kits", desc: "Repair Vehicle or Supply Kits", category: "parts", price: 300.00, icon: "fa-box" },
+            { id: 18, name: "Respray", desc: "Respray (Per Can)", category: "parts", price: 400.00, icon: "fa-box" },
+            { id: 19, name: "Spark Plugs", desc: "Replace Spark Plugs", category: "parts", price: 100.00, icon: "fa-box" },
+            { id: 20, name: "Stance Kit", desc: "Install and Setup Stance", category: "parts", price: 400.00, icon: "fa-box" },
+            { id: 21, name: "Suspension", desc: "Suspension Service", category: "labor", price: 2000.00, icon: "fa-wrench" },
+            { id: 22, name: "Tire", desc: "Slicks, Semi Slicks, Off Road", category: "tires", price: 400.00, icon: "fa-circle-dot" },
+            { id: 23, name: "Tire Replacement", desc: "Replace New Tyres (Slicks, Semi Slicks, Offroad)", category: "tires", price: 500.00, icon: "fa-circle-dot" },
+            { id: 24, name: "Tire Smoke", desc: "Add Tyre Color Chemicals", category: "parts", price: 400.00, icon: "fa-box" },
+            { id: 25, name: "Turbo", desc: "Purchase and Install Turbo", category: "parts", price: 7000.00, icon: "fa-box" },
+            { id: 26, name: "Wheels", desc: "Change and Replace Wheels", category: "parts", price: 400.00, icon: "fa-box" }
+        ];
+
+        let selectedCategory = "all";
+        let activeInvoice = []; // Tracks internal selected instances: { itemId, quantity }
+
+        // Categories Map
+        const categories = ["all", "labor", "parts", "fluids", "inspection", "tires", "other"];
+
+        // Setup Application Runtime Defaults
+        window.addEventListener('DOMContentLoaded', () => {
+            // Set dynamic date string matching contextual runtime execution stamp
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            renderFilters();
+            renderCatalog();
+            renderManagementTable();
+        });
+
+        // Tab View Router Engine Switching
+        function switchTab(tabName) {
+            const viewCalc = document.getElementById('view-calculator');
+            const viewServ = document.getElementById('view-services');
+            const navCalc = document.getElementById('nav-calculator');
+            const navServ = document.getElementById('nav-services');
+
+            if (tabName === 'calculator') {
+                viewCalc.classList.replace('hidden', 'block');
+                viewServ.classList.replace('block', 'hidden');
+                navCalc.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-gray-900 font-semibold shadow-sm transition";
+                navServ.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white font-semibold transition";
+                renderCatalog(); // Sync up updated prices
+            } else {
+                viewCalc.classList.replace('block', 'hidden');
+                viewServ.classList.replace('hidden', 'block');
+                navCalc.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white font-semibold transition";
+                navServ.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-white text-gray-900 font-semibold shadow-sm transition";
+                renderManagementTable();
+            }
+        }
+
+        // Generate Filter Pills Top Section
+        function renderFilters() {
+            const filterContainer = document.getElementById('category-filters');
+            filterContainer.innerHTML = categories.map(cat => {
+                const isActive = selectedCategory === cat;
+                return `
+                    <button onclick="setCategory('${cat}')" class="px-4 py-1.5 rounded-lg text-xs font-bold capitalize transition border ${
+                        isActive ? 'bg-white text-black border-white' : 'bg-black/20 text-white/90 border-transparent hover:bg-black/30'
+                    }">
+                        ${cat}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function setCategory(cat) {
+            selectedCategory = cat;
+            renderFilters();
+            renderCatalog();
+        }
+
+        // Render Selector Panel Left Box Layout Array Stack
+        function renderCatalog() {
+            const catalogList = document.getElementById('catalog-list');
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+
+            const filteredItems = items.filter(item => {
+                const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+                const matchesSearch = item.name.toLowerCase().includes(searchQuery) || item.desc.toLowerCase().includes(searchQuery);
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filteredItems.length === 0) {
+                catalogList.innerHTML = `<p class="text-center text-white/60 py-8 text-sm italic">No records matched filter guidelines</p>`;
+                return;
+            }
+
+            catalogList.innerHTML = filteredItems.map(item => `
+                <div onclick="addToInvoice(${item.id})" class="flex items-center justify-between p-4 rounded-xl border border-white/10 hover:border-white/30 bg-black/10 hover:bg-black/20 cursor-pointer transition select-none">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white">
+                            <i class="fa-solid ${item.icon}"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm tracking-wide text-white">${item.name}</h4>
+                            <p class="text-xs text-white/60 font-medium">${item.desc}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-bold text-base text-white">$${item.price.toFixed(2)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Dynamic Calculation & Modifier Logic Engine Block
+        function addToInvoice(id) {
+            const target = activeInvoice.find(i => i.itemId === id);
+            if (target) {
+                target.quantity += 1;
+            } else {
+                activeInvoice.push({ itemId: id, quantity: 1 });
+            }
+            renderInvoice();
+        }
+
+        function modifyQty(id, modifier) {
+            const targetIndex = activeInvoice.findIndex(i => i.itemId === id);
+            if (targetIndex > -1) {
+                activeInvoice[targetIndex].quantity += modifier;
+                if (activeInvoice[targetIndex].quantity <= 0) {
+                    activeInvoice.splice(targetIndex, 1);
+                }
+            }
+            renderInvoice();
+        }
+
+        function renderInvoice() {
+            const invoiceContainer = document.getElementById('invoice-items');
+            
+            if (activeInvoice.length === 0) {
+                invoiceContainer.innerHTML = `<p class="text-center text-white/60 py-12 text-sm italic">No items added to summary. Click an item on the left to add.</p>`;
+                calculateTotals();
+                return;
+            }
+
+            invoiceContainer.innerHTML = activeInvoice.map(invoiceItem => {
+                const catalogItem = items.find(i => i.id === invoiceItem.itemId);
+                const combinedPrice = catalogItem.price * invoiceItem.quantity;
+                return `
+                    <div class="bg-white rounded-xl p-4 text-gray-900 shadow-sm flex items-center justify-between border border-gray-100">
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-800">${catalogItem.name}</h4>
+                            <p class="text-xs text-gray-400 font-medium">$${catalogItem.price.toFixed(2)} each</p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center bg-gray-100 rounded-lg p-0.5 border border-gray-200">
+                                <button onclick="modifyQty(${catalogItem.id}, -1)" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-black font-bold transition">&minus;</button>
+                                <span class="w-8 text-center text-xs font-bold text-gray-800">${invoiceItem.quantity}</span>
+                                <button onclick="modifyQty(${catalogItem.id}, 1)" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-black font-bold transition">&plus;</button>
+                            </div>
+                            <span class="font-bold text-sm w-20 text-right text-gray-900">$${combinedPrice.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let subtotal = 0;
+            activeInvoice.forEach(invoiceItem => {
+                const catalogItem = items.find(i => i.id === invoiceItem.itemId);
+                subtotal += catalogItem.price * invoiceItem.quantity;
+            });
+
+            let discountPercent = parseFloat(document.getElementById('discount-input').value) || 0;
+            if(discountPercent < 0) discountPercent = 0;
+            if(discountPercent > 100) discountPercent = 100;
+            
+            const discountAmount = subtotal * (discountPercent / 100);
+            const total = subtotal - discountAmount;
+
+            document.getElementById('subtotal-val').innerText = `$${subtotal.toFixed(2)}`;
+            document.getElementById('discount-val').innerText = `-$${discountAmount.toFixed(2)}`;
+            document.getElementById('total-val').innerText = `$${total.toFixed(2)}`;
+        }
+
+        function resetInvoice() {
+            activeInvoice = [];
+            document.getElementById('discount-input').value = 0;
+            renderInvoice();
+        }
+
+        // Live Realtime Content Mutation Data Handlers
+        function renderManagementTable() {
+            const tbody = document.getElementById('management-table-body');
+            tbody.innerHTML = items.map(item => `
+                <tr class="hover:bg-gray-50/80 transition text-gray-700 text-sm">
+                    <td class="py-4 px-6 font-medium text-gray-900">
+                        <div>${item.name}</div>
+                        <div class="text-xs text-gray-400 font-normal">${item.desc}</div>
+                    </td>
+                    <td class="py-4 px-6 capitalize">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                            <i class="fa-solid ${item.icon} text-[10px] opacity-60"></i> ${item.category}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <div class="flex items-center justify-end gap-1">
+                            <span class="text-gray-400 font-medium">$</span>
+                            <input type="number" step="0.01" min="0" value="${item.price.toFixed(2)}" 
+                                onchange="updatePrice(${item.id}, this.value)" 
+                                class="w-28 text-right bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-900 font-bold focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updatePrice(id, newPrice) {
+            const parseVal = parseFloat(newPrice);
+            if (!isNaN(parseVal) && parseVal >= 0) {
+                const target = items.find(i => i.id === id);
+                if (target) {
+                    target.price = parseVal;
+                    // Trigger live background update for tracking metrics if selected
+                    calculateTotals();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
